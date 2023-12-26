@@ -67,22 +67,38 @@ export class StlViewer extends React.Component {
   componentDidMount() {
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(
-      750,
-      window.innerWidth / window.innerHeight,
-      10,
-      100000
-    );
+    const camera = new THREE.OrthographicCamera(window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, 1, 1000);
 
     const renderer = new THREE.WebGLRenderer(); // Create renderer here
+
+    scene.background = new THREE.Color(0xa0a0a0);
+    scene.fog = new THREE.Fog( 0xa0a0a0, ); //  10, 500
+
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x8d8d8d, 3);
+    hemiLight.position.set(0, 100, 0);
+    scene.add(hemiLight);
+
+    const dirLight = new THREE.DirectionalLight(0xffffff, 3);
+    dirLight.position.set(- 0, 40, 50);
+    dirLight.castShadow = true;
+    dirLight.shadow.camera.top = 50;
+    dirLight.shadow.camera.bottom = - 25;
+    dirLight.shadow.camera.left = - 25;
+    dirLight.shadow.camera.right = 25;
+    dirLight.shadow.camera.near = 0.1;
+    dirLight.shadow.camera.far = 200;
+    dirLight.shadow.mapSize.set(1024, 1024);
+    scene.add(dirLight);
 
     const animate = createAnimate({ scene, camera, renderer }); // Pass renderer here
 
     loader.load("http://tserver.serverpit.com:8000/getmodel/", (geometry) => {
-      const material = new THREE.MeshMatcapMaterial({
-        color: 0xffffff,
-        matcap: textureLoader.load(matcapPorcelainWhite)
+      const material = new THREE.MeshStandardMaterial({
+        color: 0xe4e4e4,
+        metalness: 0.8,
+        roughness: 0.8,
       });
+      // mesh.geometry.castShadow = true;
       const mesh = new THREE.Mesh(geometry, material);
 
       mesh.geometry.computeVertexNormals(true);
@@ -106,11 +122,6 @@ export class StlViewer extends React.Component {
 
     controls.maxDistance = 700;
     controls.minDistance = 0;
-
-    // const geometry = new THREE.BoxGeometry(10, 10, 10);
-    // const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-    // const cube = new THREE.Mesh(geometry, material);
-    // scene.add(cube);
 
     /**
      * Light set
